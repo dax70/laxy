@@ -7,27 +7,22 @@ import { isString } from '../utils/string';
 export default class Visitor {
 
   visit(source): Element<any> {
-    const {content} = source;
+    const {index, part} = source;
 
-    const documentParts = Array.isArray(content)? content: [content];
+    const context = part;
 
-    const children = documentParts.map((part, index) => {
-      const context = part;
-      switch (part.type) {
-        case 'img':
-          return this.visitImage(index, context);
-        case 'bold':
-          return this.visitBold(index, context);
-        case 'text':
-          return this.visitText(index, context);
-        case 'block':
-          return this.visitTextBlock(index, context)
-        default:
-          throw TypeError(`Document part ${part} not supported at ${index}`);
-      }
-    });
-
-    return children;
+    switch (part.type) {
+      case 'img':
+        return this.visitImage(index, context);
+      case 'bold':
+        return this.visitBold(index, context);
+      case 'text':
+        return this.visitText(index, context);
+      case 'block':
+        return this.visitTextBlock(index, context)
+      default:
+        throw TypeError(`Document part ${part} not supported at ${index}`);
+    }
   }
 
   visitImage(index, props) {
@@ -40,16 +35,29 @@ export default class Visitor {
       return <Text key={index} >{content}</Text>
     }
 
-    const textContent = this.visit(props);
+    const nested = content.content;
+    if(nested) {
+      return this.visit({index: 0, part: content});
+    }
+
+    // props is an array
+    const textContent = content.map((part, index)=> this.visit({index, part}));
     return <Text key={index} >{textContent}</Text>
   }
 
   visitBold(index, props) {
     const {content} = props;
+
     if(isString(content)) {
       return <Bold key={index} >{content}</Bold>
     }
-    const textContent = this.visit(props);
+
+    const nested = content.content;
+    if(nested) {
+      return this.visit({index: 0, part: content});
+    }
+
+    const textContent = content.map((part, index)=> this.visit({index, part}));
     return <Bold key={index} >{textContent}</Bold>
   }
 

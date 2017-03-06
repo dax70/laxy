@@ -1,4 +1,4 @@
-import React,  from 'react';
+import { Children } from 'react';
 import DocumentPart from './DocumentPart';
 import { decorate } from './Decorator';
 
@@ -10,7 +10,10 @@ class Selectable extends DocumentPart {
   }
 
   onClick(e) {
-    
+    const { onClick } = this.props;
+    if(onClick) {
+      onClick({component: this, event: e});
+    }
   }
 
   render() {
